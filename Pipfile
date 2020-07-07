@@ -1,6 +1,6 @@
 [[source]]
 name = "pypi"
-url = "https://pypi.org/simple"
+url = "https://pypi.douban.com/simple"
 verify_ssl = true
 
 [dev-packages]
@@ -13,12 +13,12 @@ whitenoise = "==5.0"
 ibmcloudenv = "*"
 livereload = "*"
 Django = ">=2.2.8"
-certifi= "*"
-chardet= "*"
-idna= "*"
-requests= "*"
-requests_toolbelt= "*"
-rsa= "*"
-six= "*"
-fabulous= "*"
+requests = "*"
+certifi = "*"
+chardet = "*"
+idna = "*"
+requests_toolbelt = "*"
+rsa = "*"
+six = "*"
+fabulous = "*"
 Pillow = "==6.2.0"
