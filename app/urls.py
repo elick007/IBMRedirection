@@ -7,5 +7,8 @@ urlpatterns = [
     path('health', views.health, name='health'),
     path('404', views.handler404, name='404'),
     path('500', views.handler500, name='500'),
-    path('download', views.download_file, name='download')
+    path('download', views.download_file, name='download'),
+    path('addtask', views.add_cron_scheduler, name='addtask'),
+    path('gettask', views.get_all_scheduler, name='gettask'),
+    path('deltask',views.del_scheduler,name='deltask')
 ]
