@@ -8,9 +8,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from bs4 import BeautifulSoup, Comment
 import requests
 
-from app.views import STATIC_DIR
 from cloud189.cli.cli import Commander
-
+STATIC_DIR=os.path.abspath(os.path.dirname(__file__))
 mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page=4'
 headers = {'Referer': 'http://www.91porn.com/index.php', 'Domain-Name': 'porn9_video_domain_name',
            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
