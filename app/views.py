@@ -10,6 +10,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from django.http import JsonResponse
 from django.http import Http404
 from django.shortcuts import render
+
+from app.static.script import fetch
 from cloud189.cli.cli import Commander
 from django.views.decorators.csrf import csrf_exempt
 
@@ -123,4 +125,5 @@ def sign_scheduler():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(sign_scheduler, 'cron', hour='15', minute='50', name='sign')
+scheduler.add_job(fetch.get_all,'cron',hour='20', minute='30', name='91')
 scheduler.start()
