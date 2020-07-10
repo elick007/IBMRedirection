@@ -4,10 +4,8 @@ import random
 import re
 from concurrent.futures.thread import ThreadPoolExecutor
 
-try:
-    from bs4 import BeautifulSoup, Comment
-except ImportError or ModuleNotFoundError:
-    os.execl('python pip3 install beautifulsoup4')
+
+from bs4 import BeautifulSoup, Comment
 import requests
 
 from app.views import STATIC_DIR
