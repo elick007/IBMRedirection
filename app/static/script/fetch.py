@@ -39,19 +39,19 @@ def get_mf_list(url):
     parse_url(mf_list)
 
 
-def fetch_html(url):
-    html = requests.get(url=url, headers=headers_1).text
-    if ((html.find('你每天只可观看25个视频') != -1) or (html.find('you can only watch 25 videos') != -1)):
+def fetch_html(url,header):
+    html = requests.get(url=url, headers=header).text
+    if ((html.find('你每天只可观看25个视频') != -1) or html == None):
         headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
             random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
-        fetch_html(url)
+        return fetch_html(url,headers_1)
     else:
         return html
 
 
 def parse_url(mf_dict):
     for key, value in mf_dict.items():
-        html = fetch_html(value)
+        html = fetch_html(value,headers_1)
         match = re.search('document.write\(strencode\("(.+)","(.+)",.+\)\);', html)
         if match:
             param1 = match.group(1)
@@ -89,9 +89,9 @@ def get_all(category, s_page: int, e_page: int):
 
 
 if __name__ == '__main__':
-    # get_all()
-    mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page={0}'.format(1)
-    get_mf_list(mf_url)
+    get_all('mf', 1, 6)
+    # mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page={0}'.format(1)
+    # get_mf_list(mf_url)
     # _thread.start_new_thread(get_mf_list, (mf_url,))
     # exit(0)
     # for i in range(17, 26, 2):
