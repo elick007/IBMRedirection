@@ -21,7 +21,7 @@ headers_1 = {
 }
 url_aria2 = 'http://104.206.144.11:6800/jsonrpc'
 
-executor = ThreadPoolExecutor()
+executor = ThreadPoolExecutor(max_workers=2)
 
 
 def get_mf_list(url):
@@ -46,7 +46,7 @@ def fetch_html(url):
             random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
         fetch_html(url)
     else:
-        return html.text
+        return html
 
 
 def parse_url(mf_dict):
@@ -81,10 +81,11 @@ def upload(url, name):
     if os.path.exists(file_path): os.remove(file_path)
 
 
-def get_all():
-    for i in range(1, 6):
-        mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page={0}'.format(i)
-        executor.submit(get_mf_list, (mf_url))
+def get_all(category, s_page: int, e_page: int):
+    for i in range(s_page, e_page):
+        mf_url = f'http://www.91porn.com/v.php?category={category}&viewtype=basic&page={i}'
+        # executor.submit(get_mf_list, (mf_url))
+        get_mf_list(mf_url)
 
 
 if __name__ == '__main__':

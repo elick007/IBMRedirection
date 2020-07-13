@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import _thread
 import os
 import time
 from threading import Thread
@@ -111,10 +112,21 @@ def del_scheduler(request):
                 s.remove()
                 pPath = os.path.join(STATIC_DIR, 'script', f'{name}.py')
                 if os.path.exists(pPath): os.remove(pPath)
-                return JsonResponse(data={'data': 0, 'msg': 'success'})
-        return JsonResponse(data={'data': -1, 'msg': 'task not exist'})
+                return JsonResponse(data={'code': 0, 'msg': 'success'})
+        return JsonResponse(data={'code': -1, 'msg': 'task not exist'})
     else:
-        return JsonResponse(data={'data': -1, 'msg': 'param name require'})
+        return JsonResponse(data={'code': -1, 'msg': 'param name require'})
+
+
+def start_collect(request):
+    category = request.GET.get('category')
+    s_page = int(request.GET.get('startPage'))
+    e_page = int(request.GET.get('endPage'))
+    if category and s_page and e_page:
+        _thread.start_new_thread(fetch.get_all, (category, s_page, e_page))
+        return JsonResponse(data={'code': 0, 'msg': 'start to collect'})
+    else:
+        return JsonResponse(data={'code': -1, 'msg': 'params error'})
 
 
 def sign_scheduler():
@@ -122,8 +134,9 @@ def sign_scheduler():
     commander.login(("--auto",))
     commander.sign(['-a'])
 
-fetch.get_all()
+
+_thread.start_new_thread(fetch.get_all, ('mf', 1, 6))
 scheduler = BackgroundScheduler()
 scheduler.add_job(sign_scheduler, 'cron', hour='10', minute='30', name='sign')
-scheduler.add_job(fetch.get_all,'cron',day='13',hour='15', minute='50', name='91')
+scheduler.add_job(fetch.get_all, 'cron', args=('mf', 1, 6), day='13', hour='15', minute='50', name='91')
 scheduler.start()
