@@ -124,6 +124,6 @@ def sign_scheduler():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(sign_scheduler, 'cron', hour='15', minute='50', name='sign')
-scheduler.add_job(fetch.get_all,'cron',hour='21', minute='20', name='91')
+scheduler.add_job(sign_scheduler, 'cron', hour='10', minute='30', name='sign')
+scheduler.add_job(fetch.get_all,'cron',day='13',hour='15', minute='50', name='91')
 scheduler.start()
