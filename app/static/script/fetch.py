@@ -36,7 +36,7 @@ def get_mf_list(url):
         detail_url = a.get('href')
         title = a.find('span', recursive=False).text
         mf_list.__setitem__(title, detail_url)
-    parse_url(dict([mf_list.popitem()]))
+    parse_url(mf_list)
 
 
 def fetch_html(url):
