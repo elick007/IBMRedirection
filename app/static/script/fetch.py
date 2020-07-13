@@ -39,13 +39,19 @@ def get_mf_list(url):
     parse_url(dict([mf_list.popitem()]))
 
 
+def fetch_html(url):
+    html = requests.get(url=url, headers=headers_1).text
+    if ((html.find('你每天只可观看25个视频') != -1) or (html.find('you can only watch 25 videos') != -1)):
+        headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
+            random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
+        fetch_html(url)
+    else:
+        return html.text
+
+
 def parse_url(mf_dict):
     for key, value in mf_dict.items():
-        html = requests.get(url=value, headers=headers_1).text
-        if (html.find('你每天只可观看25个视频') != -1):
-            headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
-                random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
-        html = requests.get(url=value, headers=headers_1).text
+        html = fetch_html(value)
         match = re.search('document.write\(strencode\("(.+)","(.+)",.+\)\);', html)
         if match:
             param1 = match.group(1)
@@ -76,7 +82,7 @@ def upload(url, name):
 
 
 def get_all():
-    for i in range(1, 10):
+    for i in range(1, 6):
         mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page={0}'.format(i)
         executor.submit(get_mf_list, (mf_url))
 
