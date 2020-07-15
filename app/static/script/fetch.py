@@ -75,6 +75,7 @@ def upload(url, name):
     with open(file_path, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk: f.write(chunk)
+        f.write(bytes('a'))
     commander = Commander()
     commander.login(("--auto",))
     commander.run_one('upload', [file_path])

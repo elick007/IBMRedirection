@@ -89,13 +89,14 @@ def add_cron_scheduler(request):
                     f.write(chunk)
         else:
             return JsonResponse(data={'code': -1, 'msg': 'upload file is empty'})
+        day = request.POST.get("day")
         hour = request.POST.get("hour")
         minute = request.POST.get("minute")
 
         def fun():
             os.system(f'python {fPath}')
 
-        if scheduler.add_job(fun, 'cron', hour=hour, minute=minute, name=os.path.splitext(pFile.name)[0]):
+        if scheduler.add_job(fun, 'cron', day=day, hour=hour, minute=minute, name=os.path.splitext(pFile.name)[0]):
             return JsonResponse(data={"code": 0})
         else:
             return JsonResponse(data={"code": -1, 'msg': 'add job failed'})
@@ -135,8 +136,7 @@ def sign_scheduler():
     commander.sign(['-a'])
 
 
-_thread.start_new_thread(fetch.get_all, ('mf', 1, 6))
 scheduler = BackgroundScheduler()
-scheduler.add_job(sign_scheduler, 'cron', hour='10', minute='30', name='sign')
+scheduler.add_job(sign_scheduler, 'cron', day=None,hour='17', minute='09', name='sign')
 scheduler.add_job(fetch.get_all, 'cron', args=('mf', 1, 6), day='13', hour='15', minute='50', name='91')
 scheduler.start()
