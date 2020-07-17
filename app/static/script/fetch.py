@@ -39,19 +39,19 @@ def get_mf_list(url):
     parse_url(mf_list)
 
 
-def fetch_html(url,header):
+def fetch_html(url, header):
     html = requests.get(url=url, headers=header).text
     if ((html.find('你每天只可观看25个视频') != -1) or html == None):
         headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
             random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
-        return fetch_html(url,headers_1)
+        return fetch_html(url, headers_1)
     else:
         return html
 
 
 def parse_url(mf_dict):
     for key, value in mf_dict.items():
-        html = fetch_html(value,headers_1)
+        html = fetch_html(value, headers_1)
         match = re.search('document.write\(strencode\("(.+)","(.+)",.+\)\);', html)
         if match:
             param1 = match.group(1)
@@ -70,12 +70,13 @@ def parse_url(mf_dict):
 
 
 def upload(url, name):
+    print("url=" + url)
     r = requests.get(url=url, allow_redirects=True, stream=True)
     file_path = os.path.join(STATIC_DIR, f"{name}.mp4")
     with open(file_path, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk: f.write(chunk)
-        f.write(bytes('a'))
+        f.write(bytes('a', encoding='utf-8'))
     commander = Commander()
     commander.login(("--auto",))
     commander.run_one('upload', [file_path])
