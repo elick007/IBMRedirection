@@ -51,36 +51,44 @@ def fetch_html(url, header):
 
 def parse_url(mf_dict):
     for key, value in mf_dict.items():
-        html = fetch_html(value, headers_1)
-        match = re.search('document.write\(strencode\("(.+)","(.+)",.+\)\);', html)
-        if match:
-            param1 = match.group(1)
-            param2 = match.group(2)
-        else:
-            print(f"don't match:{value}")
+        try:
+            html = fetch_html(value, headers_1)
+            match = re.search('document.write\(strencode\("(.+)","(.+)",.+\)\);', html)
+            if match:
+                param1 = match.group(1)
+                param2 = match.group(2)
+            else:
+                print(f"don't match:{value}")
+                continue
+            param1 = str(base64.decodebytes(str.encode(param1)), 'utf-8')
+            str_org = ''
+            for i in range(0, len(param1)):
+                k = i % len(param2)
+                str_org += chr(ord(param1[i]) ^ ord(param2[k]))
+            parser_out = str(base64.decodebytes(str.encode(str_org)), 'utf-8')
+            real_url = BeautifulSoup(parser_out, 'html.parser').find('source')['src']
+        except Exception:
             continue
-        param1 = str(base64.decodebytes(str.encode(param1)), 'utf-8')
-        str_org = ''
-        for i in range(0, len(param1)):
-            k = i % len(param2)
-            str_org += chr(ord(param1[i]) ^ ord(param2[k]))
-        parser_out = str(base64.decodebytes(str.encode(str_org)), 'utf-8')
-        real_url = BeautifulSoup(parser_out, 'html.parser').find('source')['src']
         upload(real_url, name=key)
 
 
 def upload(url, name):
     print("url=" + url)
-    r = requests.get(url=url, allow_redirects=True, stream=True)
-    file_path = os.path.join(STATIC_DIR, f"{name}.mp4")
-    with open(file_path, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk: f.write(chunk)
-        f.write(bytes('a', encoding='utf-8'))
-    commander = Commander()
-    commander.login(("--auto",))
-    commander.run_one('upload', [file_path])
-    if os.path.exists(file_path): os.remove(file_path)
+    file_path = ''
+    try:
+        r = requests.get(url=url, allow_redirects=True, stream=True)
+        file_path = os.path.join(STATIC_DIR, f"{name}.mp4")
+        with open(file_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk: f.write(chunk)
+        os.system(f"echo a>>{file_path}")
+        commander = Commander()
+        commander.login(("--auto",))
+        commander.run_one('upload', [file_path])
+    except Exception as e:
+        print(e)
+    finally:
+        if os.path.exists(file_path): os.remove(file_path)
 
 
 def get_all(category, s_page: int, e_page: int):
