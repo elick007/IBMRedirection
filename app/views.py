@@ -124,7 +124,7 @@ def start_collect(request):
     s_page = int(request.GET.get('startPage'))
     e_page = int(request.GET.get('endPage'))
     if category and s_page and e_page:
-        _thread.start_new_thread(fetch.get_all, (category, s_page, e_page))
+        fetch.get_all(category,s_page,e_page)
         return JsonResponse(data={'code': 0, 'msg': 'start to collect'})
     else:
         return JsonResponse(data={'code': -1, 'msg': 'params error'})
@@ -138,5 +138,5 @@ def sign_scheduler():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(sign_scheduler, 'cron', day=None,hour='17', minute='09', name='sign')
-scheduler.add_job(fetch.get_all, 'cron', args=('mf', 1, 6), day='13', hour='15', minute='50', name='91')
+scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 6), day='24', hour='19', minute='06', name='91')
 scheduler.start()
