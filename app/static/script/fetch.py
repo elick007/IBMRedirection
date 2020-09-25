@@ -19,7 +19,7 @@ headers = {'Referer': 'http://www.91porn.com/index.php', 'Domain-Name': 'porn9_v
 headers_1 = {
     'Referer': 'http://www.91porn.com/index.php', 'Domain-Name': 'porn9_video_domain_name',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-    'X-Forwarded-For': '104.206.141.12'
+    # 'X-Forwarded-For': '104.206.141.12'
 }
 url_aria2 = 'http://104.206.144.11:6800/jsonrpc'
 
@@ -47,9 +47,11 @@ def get_mf_list(url):
 def fetch_html(url, header):
     resp = s.get(url=url, headers=header)
     if (resp.status_code != 200 or (resp.text.find('你每天只可观看25个视频') != -1) or resp.text == None):
-        headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
-            random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
-        return fetch_html(url, headers_1)
+        # headers_1['X-Forwarded-For'] = str(random.randrange(0, 255)) + '.' + str(
+        #     random.randrange(0, 255)) + '.' + str(random.randrange(0, 255)) + '.' + str(random.randrange(0, 255))
+        # return fetch_html(url, headers_1)
+        print(f"statusCode={resp.status_code}")
+        return None
     else:
         return resp.text
 
@@ -62,7 +64,10 @@ def parse_url(title, url):
             param1 = match.group(2)
             param2 = match.group(1)
         else:
-            print(f"don't match:{url}")
+            print(f"not encryption:{url}")
+            soup=BeautifulSoup(html,'html.parser')
+            video=soup.find('video').find('source').get('src')
+            upload(video,title)
             return
         param1 = str(base64.decodebytes(str.encode(param1)), 'utf-8')
         str_org = ''
@@ -81,7 +86,10 @@ def upload(url, name):
     print("url=" + url)
     file_path = ''
     try:
-        r = s.get(url=url, allow_redirects=True, stream=True)
+        r = s.get(url=url, headers=headers_1,allow_redirects=True, stream=True)
+        if r.status_code!=200:
+            print(r)
+            return
         file_path = os.path.join(STATIC_DIR, f"{name}.mp4")
         with open(file_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
@@ -107,6 +115,7 @@ def get_all(category, s_page: int, e_page: int):
 
 if __name__ == '__main__':
     get_all('tf', 1, 2)
+    #parse_url("tete","http://www.91porn.com/view_video.php?viewkey=976079af64581f7b1430&page=1&viewtype=basic&category=tf")
     # mf_url = 'http://www.91porn.com/v.php?category=mf&viewtype=basic&page={0}'.format(1)
     # get_mf_list(mf_url)
     # _thread.start_new_thread(get_mf_list, (mf_url,))
