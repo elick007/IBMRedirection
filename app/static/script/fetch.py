@@ -19,7 +19,7 @@ headers = {'Referer': 'http://www.91porn.com/index.php', 'Domain-Name': 'porn9_v
            }
 headers_1 = {
     'Referer': 'http://www.91porn.com/index.php', 'Domain-Name': 'porn9_video_domain_name',
-    # 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
     'X-Forwarded-For': '104.216.141.12'
 }
 url_aria2 = 'http://104.206.144.11:6800/jsonrpc'

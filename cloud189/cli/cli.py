@@ -11,7 +11,7 @@ from cloud189.api.token import get_token
 from cloud189.api.utils import logger
 
 from cloud189.cli import config
-from cloud189.cli.downloader import Downloader, Uploader
+from cloud189.cli.downloader import Downloader, Uploader, UploadType
 from cloud189.cli.manager import global_task_mgr
 from cloud189.cli.recovery import Recovery
 from cloud189.cli.utils import *
@@ -182,11 +182,13 @@ class Commander:
     def su(self, args):
         """列出、切换用户"""
         users = config.get_users_name()
+
         def list_user():
             for i, user in enumerate(users):
                 user_info = config.get_user_info(user)
                 methord = "用户名+密码 登录" if user_info[2] else "Cookie 登录"
                 print(f"[{i}] 用户名: {user}, {methord}")
+
         if args:
             if args[0] == '-l':
                 list_user()
@@ -263,7 +265,8 @@ class Commander:
             else:  # 普通用户显示方式
                 for file in self._file_list:
                     star = '✦' if file.isStarred else '✧'  # 好像 没什么卵用
-                    file_name = f"\033[1;34m{handle_name(file.name)}\033[0m" if file.isFolder else handle_name(file.name)
+                    file_name = f"\033[1;34m{handle_name(file.name)}\033[0m" if file.isFolder else handle_name(
+                        file.name)
                     print("# {0:<17}{1:<4}{2:<20}{3:>8}  {4}".format(
                         file.id, star, file.ctime, get_file_size_str(file.size), file_name))
         if fid != old_fid:
@@ -452,27 +455,39 @@ class Commander:
         follow = False
         force = False
         mkdir = True
+        url = False
         for arg in args:
-            follow, force, mkdir, match = parsing_up_params(arg, follow, force, mkdir)
+            follow, force, mkdir, url, match = parsing_up_params(arg, follow, force, mkdir, url)
             if match:
                 args.remove(arg)
         for path in args:
-            path = path.strip('\"\' ')  # 去除直接拖文件到窗口产生的引号
-            if not os.path.exists(path):
-                error(f'该路径不存在哦: {path}')
-                continue
-            uploader = Uploader(self._disk)
-            if os.path.isfile(path):
-                uploader.set_upload_path(path, is_file=True, force=force)
+            if url:
+                self.upload_by_url(path)
+                task_flag = True
             else:
-                uploader.set_upload_path(path, is_file=False, force=force, mkdir=mkdir)
-            uploader.set_target(self._work_id, self._work_name)
-            self._task_mgr.add_task(uploader)
-            task_flag = True
+                path = path.strip('\"\' ')  # 去除直接拖文件到窗口产生的引号
+                if not os.path.exists(path):
+                    error(f'该路径不存在哦: {path}')
+                    continue
+                uploader = Uploader(self._disk)
+                if os.path.isfile(path):
+                    uploader.set_upload_path(path, is_file=True, force=force)
+                else:
+                    uploader.set_upload_path(path, is_file=False, force=force, mkdir=mkdir)
+                uploader.set_target(self._work_id, self._work_name)
+                self._task_mgr.add_task(uploader)
+                task_flag = True
         if follow and task_flag:
             self.jobs(['-f', ])
         elif task_flag:
             print("开始上传, 输入 jobs 查看上传进度...")
+
+    def upload_by_url(self, url):
+        """远程下载上传"""
+        uploader = Uploader(self._disk)
+        uploader.set_upload_url(url)
+        uploader.set_target(self._work_id, self._work_name)
+        self._task_mgr.add_task(uploader)
 
     def share(self, args):
         """分享文件"""
@@ -538,8 +553,8 @@ class Commander:
         if not user:
             error("发生未知错误！")
             return None
-        quota = ", 总空间: {:.3f} GB".format(user.quota/1073741824)  # GB
-        used = ", 已使用: {:.3f} GB".format(user.used/1073741824)  # GB
+        quota = ", 总空间: {:.3f} GB".format(user.quota / 1073741824)  # GB
+        used = ", 已使用: {:.3f} GB".format(user.used / 1073741824)  # GB
         nickname = f", 昵称: {user.nickname}"
         print(f"账号: {user.account}, UID: {user.id}{nickname}{quota}{used}")
         # 99 家庭云黄金会员, 199 家庭云铂金会员 (可能不是这个的值)

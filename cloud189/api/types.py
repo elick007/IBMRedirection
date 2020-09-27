@@ -4,10 +4,8 @@ API 处理后返回的数据类型
 
 from collections import namedtuple
 
-
 __all__ = ['FileInfo', 'RecInfo', 'PathInfo', 'UpCode', 'MkCode', 'UpInfo',
            'ShareCode', 'FolderTree', 'ShareInfo', 'UserInfo']
-
 
 _base_info = ['name', 'id', 'pid', 'ctime', 'optime', 'size', 'ftype', 'isFolder', 'durl']
 _file_info = (*_base_info, 'isStarred', 'account', 'count')
@@ -32,5 +30,6 @@ ShareInfo = namedtuple('ShareInfo', _share_info, defaults=('',) * len(_share_inf
 UserInfo = namedtuple('UserInfo', ['id', 'account', 'nickname', 'used', 'quota', 'vip', 'endTime',
                                    'beginTime', 'domain'], defaults=('',) * 9)
 
-UpInfo = namedtuple('UpInfo', ['name', 'path', 'id', 'fid', 'size', 'force', 'exist', 'check', 'callback'],
-                    defaults=('', '', '', '-11', 0, False, False, True, None))
+UpInfo = namedtuple('UpInfo',
+                    ['name', 'path', 'id', 'fid', 'size', 'md5', 'd_url', 'force', 'exist', 'check', 'callback'],
+                    defaults=('', '', '', '-11', None, None, 0, False, False, True, None))

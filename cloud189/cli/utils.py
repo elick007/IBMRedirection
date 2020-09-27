@@ -44,14 +44,15 @@ def get_file_size_str(filesize) -> str:
         return ''
     filesize = int(filesize)
     if 0 < filesize < 1 << 20:
-        return f"{round(filesize/1024, 2)}KB"
+        return f"{round(filesize / 1024, 2)}KB"
     elif 1 << 20 < filesize < 1 << 30:
-        return f"{round(filesize/(1 << 20), 2)}MB"
+        return f"{round(filesize / (1 << 20), 2)}MB"
     elif 1 << 30 < filesize < 1 << 40:
-        return f"{round(filesize/(1 << 30), 2)}GB"
+        return f"{round(filesize / (1 << 30), 2)}GB"
     elif 1 << 40 < filesize < 1 << 50:
-        return f"{round(filesize/(1 << 40), 2)}TB"
-    else: return f"{filesize}Bytes"
+        return f"{round(filesize / (1 << 40), 2)}TB"
+    else:
+        return f"{filesize}Bytes"
 
 
 def why_error(code):
@@ -138,13 +139,14 @@ def text_align(text, length) -> str:
     return text + ' ' * space
 
 
-def parsing_up_params(arg: str, follow, force, mkdir) -> (bool, bool, bool, bool):
+def parsing_up_params(arg: str, follow, force, mkdir, url) -> (bool, bool, bool, bool, bool):
     """解析文件上传参数
     :param str arg: 解析参数
     :param bool follow: 实时任务
     :param bool force: 强制上传
     :param bool mkdir: 不创建父文件夹
-    :return: follow, force, mkdir, match(标识是否需要删除 arg)
+    :param bool url: 远程下载上传
+    :return: follow, force, mkdir,url, match(标识是否需要删除 arg)
     """
     match = False
     if len(arg) > 1:
@@ -158,6 +160,10 @@ def parsing_up_params(arg: str, follow, force, mkdir) -> (bool, bool, bool, bool
             elif arg == '--nodir':  # 不创建父文件夹
                 mkdir = False
                 match = True
+            elif arg == '--url':  # 远程下载上传
+                url = True
+                match = True
+
         elif arg.startswith('-'):
             for i in arg[1:]:
                 if i == 'f':  # 实时任务
@@ -169,7 +175,10 @@ def parsing_up_params(arg: str, follow, force, mkdir) -> (bool, bool, bool, bool
                 elif i == 'n':  # 不创建父文件夹
                     mkdir = False
                     match = True
-    return follow, force, mkdir, match
+                elif i == 'u':
+                    url = True
+                    match = True
+    return follow, force, mkdir, url, match
 
 
 def handle_name(name: str) -> str:

@@ -1,11 +1,13 @@
 """
 天翼云盘 API，封装了对天翼云的各种操作
 """
-
+import hashlib
 import os
 import re
 import json
+import time
 from time import sleep
+from urllib.parse import unquote
 
 from xml.etree import ElementTree
 import requests
@@ -220,9 +222,9 @@ class Cloud189(object):
         :return:          Cloud189 状态码
         """
         task_info = {
-            "fileId": str(file_info.id),                # str
-            "srcParentId": str(file_info.pid),          # str
-            "fileName": file_info.name,                 # str
+            "fileId": str(file_info.id),  # str
+            "srcParentId": str(file_info.pid),  # str
+            "fileName": file_info.name,  # str
             "isFolder": 1 if file_info.isFolder else 0  # int
         }
 
@@ -394,7 +396,7 @@ class Cloud189(object):
                 "baseFileId": "",
                 "fileName": up_info.name,
                 "size": up_info.size,
-                "md5": get_file_md5(up_info.path, up_info.check),
+                "md5": get_file_md5(up_info.path, up_info.check) if up_info.md5 is None else up_info.md5,
                 "lastWrite": "",
                 "localPath": up_info.path,
                 "opertype": 1,
@@ -462,21 +464,26 @@ class Cloud189(object):
                 up_info.callback(up_info.path, up_info.size, up_info.size)
 
         chunk_size = get_chunk_size(up_info.size)
-        with open(up_info.path, 'rb') as f:
-            chunks = get_upload_chunks(f, chunk_size)
+        if up_info.d_url is None:
+            with open(up_info.path, 'rb') as f:
+                chunks = get_upload_chunks(f, chunk_size)
+                post_data = _call_back(chunks, chunk_size)
+        else:
+            # 边下边上传
+            r = requests.get(url=up_info.d_url, allow_redirects=True, stream=True)
+            chunks = r.iter_content(chunk_size)
             post_data = _call_back(chunks, chunk_size)
-
-            resp = requests.put(url, data=post_data, headers=headers, verify=False, timeout=None)
-            if resp.text != "":
-                node = ElementTree.XML(resp.text)
-                if node.text == "error":
-                    if node.findtext('code') != 'UploadFileCompeletedError':
-                        logger.error(
-                            f"Upload by client [data]: an error occurred while uploading data {node.findtext('code')},{node.findtext('message')}")
-                        return Cloud189.FAILED
-            else:
-                logger.debug(f"Upload by client [data]: upload {up_info.path} success!")
-                return Cloud189.SUCCESS
+        resp = requests.put(url, data=post_data, headers=headers, verify=False, timeout=None)
+        if resp.text != "":
+            node = ElementTree.XML(resp.text)
+            if node.text == "error":
+                if node.findtext('code') != 'UploadFileCompeletedError':
+                    logger.error(
+                        f"Upload by client [data]: an error occurred while uploading data {node.findtext('code')},{node.findtext('message')}")
+                    return Cloud189.FAILED
+        else:
+            logger.debug(f"Upload by client [data]: upload {up_info.path} success!")
+            return Cloud189.SUCCESS
 
     def _upload_client_commit(self, file_commit_url, upload_file_id):
         """客户端接口上传确认"""
@@ -624,7 +631,6 @@ class Cloud189(object):
                 up_info.callback(up_info.path, 1, 1, call_back_msg)
             return UpCode(code=code, id=fid, path=up_info.path)
 
-
     def _check_up_file_exist(self, up_info: UpInfo) -> UpInfo:
         """检查文件是否已经存在"""
         if not up_info.force:
@@ -635,6 +641,46 @@ class Cloud189(object):
                     up_info = up_info._replace(id=file_info.id, exist=True)
                     break
         return up_info
+
+    def getfilename(self, headers, url):
+        filename = ''
+        if 'Content-Disposition' in headers and headers['Content-Disposition']:
+            disposition_split = headers['Content-Disposition'].split(';')
+            if len(disposition_split) > 1:
+                if disposition_split[1].strip().lower().startswith('filename='):
+                    file_name = disposition_split[1].split('=')
+                    if len(file_name) > 1:
+                        filename = unquote(file_name[1])
+        if not filename and os.path.basename(url):
+            filename = os.path.basename(url).split("?")[0]
+        if not filename:
+            return time.time()
+        return filename
+
+    def upload_file_by_url(self, url, folder_id=-11, force=False, callback=None) -> UpCode:
+        r = requests.get(url=url, allow_redirects=True, stream=True)
+        file_name = self.getfilename(r.headers, url)
+        file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), str(file_name))
+        file_size = int(r.headers['Content-Length'])
+        _md5 = hashlib.md5()
+        for chunk in r.iter_content(chunk_size=4 << 20):
+            if chunk:
+                _md5.update(chunk)
+        hash_md5 = _md5.hexdigest().upper()
+        up_info = self._check_up_file_exist(
+            UpInfo(name=file_name, path=file_path, size=file_size, md5=hash_md5, d_url=url,fid=str(folder_id), force=force,
+                   callback=callback))
+        if not force and up_info.exist:
+            logger.debug(f"Abandon upload because the file is already exist: {file_name=}")
+            if up_info.callback:
+                up_info.callback(up_info.path, 1, 1, 'exist')
+            return UpCode(code=Cloud189.SUCCESS, id=up_info.id, path=file_path)
+        elif self._sessionKey and self._sessionSecret and self._accessToken:
+            logger.debug(f"Use the client interface to upload files: {file_path=}, {folder_id=}")
+            return self._upload_file_by_client(up_info)
+        else:
+            logger.debug(f"Use the web interface to upload files: {file_path=}, {folder_id=}")
+            return self._upload_file_by_web(up_info)
 
     def upload_file(self, file_path, folder_id=-11, force=False, callback=None) -> UpCode:
         """单个文件上传接口
@@ -665,7 +711,7 @@ class Cloud189(object):
             return self._upload_file_by_web(up_info)
 
     def upload_dir(self, folder_path, parrent_fid=-11, force=False, mkdir=True, callback=None,
-                   failed_callback=None, up_handler= None):
+                   failed_callback=None, up_handler=None):
         """文件夹上传接口
         :param str file_path: 待上传文件路径
         :param int folder_id: 上传目录 id

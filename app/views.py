@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import _thread
+import hashlib
 import os
 import time
 from threading import Thread
@@ -61,6 +62,13 @@ class FileHandler(Thread):
         r = requests.get(url=self.url, allow_redirects=True, stream=True)
         file_name = self.getfilename(r.headers)
         file_path = os.path.join(STATIC_DIR, str(file_name))
+        file_size = int(r.headers['Content-Length'])
+        if file_size > 700 << 20:
+            _md5 = hashlib.md5()
+            for chunk in r.iter_content(chunk_size=4 << 20):
+                if chunk:
+                    _md5.update(chunk)
+            hash_md5 = _md5.hexdigest().upper()
         with open(file_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk: f.write(chunk)
@@ -73,8 +81,9 @@ class FileHandler(Thread):
 def download_file(request):
     url = request.GET.get('url')
     if url is not None:
-        fileHandler = FileHandler(url)
-        fileHandler.start()
+        commander = Commander()
+        commander.login(("--auto",))
+        commander.run_one('upload', ['--follow','--url', url])
     return JsonResponse(data={"code": 0})
 
 
@@ -124,7 +133,7 @@ def start_collect(request):
     s_page = int(request.GET.get('startPage'))
     e_page = int(request.GET.get('endPage'))
     if category and s_page and e_page:
-        fetch.get_all(category,s_page,e_page)
+        fetch.get_all(category, s_page, e_page)
         return JsonResponse(data={'code': 0, 'msg': 'start to collect'})
     else:
         return JsonResponse(data={'code': -1, 'msg': 'params error'})
@@ -137,6 +146,6 @@ def sign_scheduler():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(sign_scheduler, 'cron', day=None,hour='17', minute='09', name='sign')
+scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
 scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 6), day='24', hour='19', minute='06', name='91')
 scheduler.start()

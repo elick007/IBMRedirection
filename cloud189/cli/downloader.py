@@ -149,6 +149,7 @@ class UploadType(Enum):
     """上传类型枚举类"""
     FILE = 0
     FOLDER = 1
+    URL = 2
 
 
 class Uploader(Thread):
@@ -170,6 +171,7 @@ class Uploader(Thread):
         self._done_files = 0  # for dir upload
         self._total_files = 0  # for dir upload
         self._err_msg = []
+        self.url = ''
 
     def _error_msg(self, msg):
         self._err_msg.append(msg)
@@ -203,6 +205,12 @@ class Uploader(Thread):
         self._mkdir = mkdir
         self._up_type = UploadType.FILE if is_file else UploadType.FOLDER
 
+    def set_upload_url(self, url, force=False, mkdir=True):
+        self.url = url
+        self._up_type = UploadType.URL
+        self._force = force
+        self._mkdir = mkdir
+
     def set_target(self, folder_id=-1, folder_name=''):
         """设置网盘保存文件夹信息"""
         self._folder_id = folder_id
@@ -224,10 +232,15 @@ class Uploader(Thread):
 
     def run(self) -> None:
         if self._up_type == UploadType.FILE:
-            info = self._disk.upload_file(self._up_path, self._folder_id, callback=self._show_progress, force=self._force)
+            info = self._disk.upload_file(self._up_path, self._folder_id, callback=self._show_progress,
+                                          force=self._force)
             if info.code != Cloud189.SUCCESS:
                 self._error_msg(f"上传失败: {why_error(info.code)} -> {self._up_path}")
-
+        elif self._up_type == UploadType.URL:
+            info = self._disk.upload_file_by_url(self.url, self._folder_id, callback=self._show_progress,
+                                                 force=self._force)
+            if info.code != Cloud189.SUCCESS:
+                self._error_msg(f"上传失败: {why_error(info.code)} -> {self.url}")
         elif self._up_type == UploadType.FOLDER:
             infos = self._disk.upload_dir(self._up_path, self._folder_id, self._force, self._mkdir,
                                           callback=self._show_progress, failed_callback=self._show_upload_failed,
