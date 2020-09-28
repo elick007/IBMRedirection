@@ -83,7 +83,7 @@ def download_file(request):
     if url is not None:
         commander = Commander()
         commander.login(("--auto",))
-        commander.run_one('upload', ['--follow','--url', url])
+        commander.run_one('upload', ['--url', url])
     return JsonResponse(data={"code": 0})
 
 
@@ -144,6 +144,8 @@ def sign_scheduler():
     commander.login(("--auto",))
     commander.sign(['-a'])
 
+commander=Commander()
+commander.login(("--auto",))
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
