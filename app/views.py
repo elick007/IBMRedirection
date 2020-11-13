@@ -144,10 +144,8 @@ def sign_scheduler():
     commander.login(("--auto",))
     commander.sign(['-a'])
 
-commander=Commander()
-commander.login(("--auto",))
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
-scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 6), day='24', hour='19', minute='06', name='91')
+scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 8), day='24', hour='19', minute='06', name='91')
 scheduler.start()
