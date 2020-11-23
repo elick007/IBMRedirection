@@ -78,9 +78,15 @@ class FileHandler(Thread):
         if os.path.exists(file_path): os.remove(file_path)
 
 
+global urls
+
+
 def download_file(request):
     url = request.GET.get('url')
+    UA = request.GET.get('ua')
     if url is not None:
+        global urls
+        urls = {"url": url, 'ua': UA}
         commander = Commander()
         commander.login(("--auto",))
         commander.run_one('upload', ['--url', url])

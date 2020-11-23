@@ -658,7 +658,8 @@ class Cloud189(object):
         return filename
 
     def upload_file_by_url(self, url, folder_id=-11, force=False, callback=None) -> UpCode:
-        r = requests.get(url=url, allow_redirects=True, stream=True)
+        headers = {"User-Agent": "netdisk;7.0.5.9;WindowsBaiduYunGuanJia"}
+        r = requests.get(url=url, allow_redirects=True, stream=True, headers=headers)
         file_name = self.getfilename(r.headers, url)
         file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), str(file_name))
         file_size = int(r.headers['Content-Length'])
@@ -668,7 +669,8 @@ class Cloud189(object):
                 _md5.update(chunk)
         hash_md5 = _md5.hexdigest().upper()
         up_info = self._check_up_file_exist(
-            UpInfo(name=file_name, path=file_path, size=file_size, md5=hash_md5, d_url=url,fid=str(folder_id), force=force,
+            UpInfo(name=file_name, path=file_path, size=file_size, md5=hash_md5, d_url=url, fid=str(folder_id),
+                   force=force,
                    callback=callback))
         if not force and up_info.exist:
             logger.debug(f"Abandon upload because the file is already exist: {file_name=}")
