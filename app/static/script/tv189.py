@@ -1,6 +1,6 @@
 import json
 import requests
-
+import random
 
 users = {'unames': ['BDXlIFCyDITB2FwqIG8rTw==',  # 189
                     '4JbMc+sqn0cH+Cl5JgcTEw==',  # 134
@@ -23,7 +23,14 @@ if __name__ == '__main__':
         if login_json.get('code') == 0:
             # signed
             headers['Referer'] = "http://h5.nty.tv189.com/csite/tysx/task/index"
-            print(_session.get("http://h5.nty.tv189.com/api/portal/task/integralpresentforsign", headers=headers).text)
+            print("sign: " + _session.get("http://h5.nty.tv189.com/api/portal/task/integralpresentforsign",
+                                          headers=headers).text)
+            print(
+                "share: " + _session.get(
+                    f"http://h5.nty.tv189.com/api/portal/task/shareintegralapply?{random.random()}",
+                    headers=headers).text)
+            print("festival: " + _session.get(f"http://h5.nty.tv189.com/api/portal/task/festival-get?{random.random()}",
+                                         headers=headers).text)
             headers['Referer'] = 'http://h5.nty.tv189.com/csite/tysx/task/normalscreen'
             tasks = ['1', '5', '30']
             for task in tasks:
