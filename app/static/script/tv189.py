@@ -1,11 +1,11 @@
 import json
-
 import requests
+
 
 users = {'unames': ['BDXlIFCyDITB2FwqIG8rTw==',  # 189
                     '4JbMc+sqn0cH+Cl5JgcTEw==',  # 134
                     'xTaSwzbCbuXYERpm9WKUBQ==',  # 158
-                    ],'upass':'LUXWSieEVbZ8F+VZeTzLxg==' }
+                    ], 'upass': 'LUXWSieEVbZ8F+VZeTzLxg=='}
 if __name__ == '__main__':
     _session = requests.session()
     resp = _session.get('http://h5.nty.tv189.com/csite/tysx/uc/login-by-pass?goBackUrl=')
@@ -13,7 +13,7 @@ if __name__ == '__main__':
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "Origin": "http://h5.nty.tv189.com",
         "Referer": "http://h5.nty.tv189.com/csite/tysx/uc/login-by-pass?goBackUrl=",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; MuMu Build/V417IR; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/52.0.2743.100 Mobile Safari/537.36/newtysx-android-ua-5.5.9.39",
         "X-Requested-With": "XMLHttpRequest"}
     for user in users['unames']:
         login_resp = _session.post('http://h5.nty.tv189.com/api/portal/h5inter/login',
