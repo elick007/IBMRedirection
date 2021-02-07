@@ -102,7 +102,7 @@ class Commander:
                     self.refresh(config.work_id, auto=True)
                     return None
         username = "18948100719"
-        password = "MZxh19950810"
+        password = "MZxh.19950810"
         if not username or not password:
             error('没有用户名或密码 :(')
             return None
@@ -486,6 +486,13 @@ class Commander:
         """远程下载上传"""
         uploader = Uploader(self._disk)
         uploader.set_upload_url(url)
+        uploader.set_target(self._work_id, self._work_name)
+        self._task_mgr.add_task(uploader)
+
+    def upload_by_MD5info(self, md5, size,name,url,session_key,session_secret,access_token):
+        self._disk.set_session(session_key,session_secret,access_token)
+        uploader = Uploader(self._disk)
+        uploader.set_md5_info(md5, size,name,url)
         uploader.set_target(self._work_id, self._work_name)
         self._task_mgr.add_task(uploader)
 

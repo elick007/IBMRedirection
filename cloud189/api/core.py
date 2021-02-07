@@ -39,6 +39,7 @@ class Cloud189(object):
     UP_UNKNOWN_ERROR = 12  # 创建上传任务未知错误
     UP_EXHAUSTED_ERROR = 13  # 上传量用完
     UP_ILLEGAL_ERROR = 14  # 文件非法
+    NOT_MD5_EXIST = 15
 
     def __init__(self):
         self._session = requests.Session()
@@ -540,6 +541,8 @@ class Cloud189(object):
                     call_back_msg = 'error'
                     code = Cloud189.UP_COMMIT_ERROR
             else:  # 上传文件数据
+                if up_info.type == 'md5':
+                    print(f"quick upload failed {up_info.name}")
                 logger.debug(f"Upload by client: [{up_info.path}] enter the normal upload process...")
                 code = self._upload_file_data(file_upload_url, upload_file_id, up_info)
                 if code == Cloud189.SUCCESS:
@@ -682,6 +685,17 @@ class Cloud189(object):
             return self._upload_file_by_client(up_info)
         else:
             logger.debug(f"Use the web interface to upload files: {file_path=}, {folder_id=}")
+            return self._upload_file_by_web(up_info)
+
+    def upload_file_by_MD5Info(self, md5, size,name,url, folder_id=-11, force=False, callback=None) -> UpCode:
+        # dont checkout
+        # up_info=self._check_up_file_exist(UPInfo(name=md5,))
+        up_info = UpInfo(type='md5',name=name, path=md5, size=size, md5=md5,d_url=url, fid=str(folder_id), force=force, callback=callback)
+        if self._sessionKey and self._sessionSecret and self._accessToken:
+            logger.debug(f"Use the client interface to upload files: {md5=}, {folder_id=}")
+            return self._upload_file_by_client(up_info)
+        else:
+            logger.debug(f"Use the web interface to upload files: {md5=}, {folder_id=}")
             return self._upload_file_by_web(up_info)
 
     def upload_file(self, file_path, folder_id=-11, force=False, callback=None) -> UpCode:

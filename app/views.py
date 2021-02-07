@@ -151,7 +151,22 @@ def sign_scheduler():
     commander.sign(['-a'])
 
 
+def download_xfile(request):
+    if request.method == "POST":
+        md5 = request.POST.get("md5")
+        size = request.POST.get("size")
+        name = request.POST.get("name")
+        url = request.POST.get("url")
+        session_key = request.POST.get("sessionKey")
+        session_secret = request.POST.get("sessionSecret")
+        access_token = request.POST.get("accessToken")
+        if md5 is None or size is None or name is None or url is None or session_key is None or session_secret is None or access_token is None:
+            return JsonResponse(data={'code':-1,'msg':'params error'})
+        client = Commander()
+        client.upload_by_MD5info(md5, size, name, url, session_key, session_secret, access_token)
+        return JsonResponse(data={'code': 0, 'msg': 'success'})
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
-scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 8), day='24', hour='19', minute='06', name='91')
-scheduler.start()
+# scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
+# scheduler.add_job(fetch.get_all, 'cron', args=('tf', 1, 8), day='24', hour='19', minute='06', name='91')
+# scheduler.start()

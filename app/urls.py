@@ -11,5 +11,6 @@ urlpatterns = [
     path('addtask', views.add_cron_scheduler, name='addtask'),
     path('gettask', views.get_all_scheduler, name='gettask'),
     path('deltask', views.del_scheduler, name='deltask'),
-    path('collect91', views.start_collect, name='collect')
+    path('collect91', views.start_collect, name='collect'),
+    path('upload', views.download_xfile, name='upload')
 ]

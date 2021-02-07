@@ -31,5 +31,6 @@ UserInfo = namedtuple('UserInfo', ['id', 'account', 'nickname', 'used', 'quota',
                                    'beginTime', 'domain'], defaults=('',) * 9)
 
 UpInfo = namedtuple('UpInfo',
-                    ['name', 'path', 'id', 'fid', 'size', 'md5', 'd_url', 'force', 'exist', 'check', 'callback'],
-                    defaults=('', '', '', '-11', None, None, 0, False, False, True, None))
+                    ['name', 'path', 'id', 'fid', 'size', 'md5', 'd_url', 'force', 'exist', 'check', 'callback',
+                     'type'],
+                    defaults=('', '', '', '-11', None, None, 0, False, False, True, None,''))

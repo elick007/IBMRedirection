@@ -150,6 +150,7 @@ class UploadType(Enum):
     FILE = 0
     FOLDER = 1
     URL = 2
+    MD5 = 3
 
 
 class Uploader(Thread):
@@ -172,6 +173,9 @@ class Uploader(Thread):
         self._total_files = 0  # for dir upload
         self._err_msg = []
         self.url = ''
+        self._md5 = ''
+        self._size = 0
+        self._fileName = ''
 
     def _error_msg(self, msg):
         self._err_msg.append(msg)
@@ -230,6 +234,13 @@ class Uploader(Thread):
         self._done_files = done_files
         self._total_files = total_files
 
+    def set_md5_info(self, md5, size, name,url=""):
+        self._md5 = md5
+        self._size = size
+        self._fileName = name
+        self.url=url
+        self._up_type = UploadType.MD5
+
     def run(self) -> None:
         if self._up_type == UploadType.FILE:
             info = self._disk.upload_file(self._up_path, self._folder_id, callback=self._show_progress,
@@ -247,3 +258,9 @@ class Uploader(Thread):
                                           up_handler=self._set_dir_count)
             if not isinstance(infos, list):  # 进入单文件上传之前就已经出错(创建文件夹失败！) UpCode or MkCode
                 self._error_msg(f"文件夹上传失败: {why_error(infos.code)} -> {self._up_path}")
+        elif self._up_type == UploadType.MD5:
+            info = self._disk.upload_file_by_MD5Info(self._md5, self._size, self._fileName,self.url, self._folder_id,
+                                                     callback=self._show_progress,
+                                                     force=self._force)
+            if info.code != Cloud189.SUCCESS:
+                self._error_msg(f"no such md5 in cloud189 md5={self._md5}")
