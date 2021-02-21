@@ -150,7 +150,7 @@ def sign_scheduler():
     commander.login(("--auto",))
     commander.sign(['-a'])
 
-
+@csrf_exempt
 def download_xfile(request):
     if request.method == "POST":
         md5 = request.POST.get("md5")
