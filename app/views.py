@@ -78,19 +78,18 @@ class FileHandler(Thread):
         if os.path.exists(file_path): os.remove(file_path)
 
 
-global urls
-
-
 def download_file(request):
     url = request.GET.get('url')
-    UA = request.GET.get('ua')
     if url is not None:
-        global urls
-        urls = {"url": url, 'ua': UA}
-        commander = Commander()
-        commander.login(("--auto",))
-        commander.run_one('upload', ['--url', url])
-    return JsonResponse(data={"code": 0})
+        def task():
+            commander = Commander()
+            commander.login(("--auto",))
+            commander.run_one('upload', ['--url', url])
+
+        _thread.start_new_thread(task, ())
+        return JsonResponse(data={"code": 0})
+    else:
+        return JsonResponse(data={"code": -1, "msg": "url require"})
 
 
 @csrf_exempt
@@ -150,21 +149,23 @@ def sign_scheduler():
     commander.login(("--auto",))
     commander.sign(['-a'])
 
+
 @csrf_exempt
 def download_xfile(request):
     if request.method == "POST":
         md5 = request.POST.get("md5")
-        size = request.POST.get("size")
+        size = int(request.POST.get("size"))
         name = request.POST.get("name")
         url = request.POST.get("url")
         session_key = request.POST.get("sessionKey")
         session_secret = request.POST.get("sessionSecret")
         access_token = request.POST.get("accessToken")
         if md5 is None or size is None or name is None or url is None or session_key is None or session_secret is None or access_token is None:
-            return JsonResponse(data={'code':-1,'msg':'params error'})
+            return JsonResponse(data={'code': -1, 'msg': 'params error'})
         client = Commander()
         client.upload_by_MD5info(md5, size, name, url, session_key, session_secret, access_token)
         return JsonResponse(data={'code': 0, 'msg': 'success'})
+
 
 scheduler = BackgroundScheduler()
 # scheduler.add_job(sign_scheduler, 'cron', day=None, hour='17', minute='09', name='sign')
